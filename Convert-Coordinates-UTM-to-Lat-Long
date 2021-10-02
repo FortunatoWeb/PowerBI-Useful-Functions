@@ -1,0 +1,71 @@
+let
+
+/*Fórmula para converter coordenadas UTM para Geográficas
+Desenvolvido por: José Carlos Fortunato - fortunatojosecarlos@gmail.com*/
+
+    UtmLatLong = (UTMeste as number,UTMnorte as number,Hemisferio as text,MeridianoCentral as number) =>
+        let
+        long0 = MeridianoCentral,
+        Hem = Hemisferio,
+        TextHem = Text.Upper(Hem),
+        a = 6378137.0000,
+        b = 6356752.3141,
+        x = 500000 - UTMeste,
+        y = UTMnorte,
+
+        y1 = if TextHem = "S" or TextHem = "SOUTH" or TextHem = "SUL" then
+        10000000 - y
+        else y,
+
+        M = y1 / 0.9996,
+        e = Number.Sqrt(1 - Number.Power(b,2) / Number.Power(a,2)),
+        mu = M / (a * (1 - Number.Power(e,2) / 4 - 3 * Number.Power(e,4) / 64 - 5 * Number.Power(e,6) / 256)),
+        e1 = (1 - Number.Power((1 - Number.Power(e,2)),(1 / 2))) / (1 + Number.Power((1 - Number.Power(e,2)),(1 / 2))),
+
+        j1 = (3 * e1 / 2 - 27 * Number.Power(e1,3) / 32),
+        j2 = (21 * Number.Power(e1,2) / 16 - 55 * Number.Power(e1,4) / 32),
+        j3 = (151 * Number.Power(e1,3) / 96),
+        j4 = (1097 * Number.Power(e1,4) / 512),
+
+        fp = mu + j1 * Number.Sin(2 * mu) + j2 * Number.Sin(4 * mu) + j3 * Number.Sin(6 * mu) + j4 * Number.Sin(8 * mu),
+
+        e2 = Number.Power(e,2) / (1 - Number.Power(e,2)),
+        c1 = e2 * Number.Power((Number.Cos(fp)),2),
+        t1 = Number.Power(((Number.Sin(fp)) / (Number.Cos(fp))),2),
+        r1 = a * (1 - Number.Power(e,2)) / Number.Power((1 - Number.Power(e,2) * Number.Power((Number.Sin(fp)),2)),(3 / 2)),
+        n1 = a / Number.Power((1 - Number.Power(e,2) * Number.Power((Number.Sin(fp)),2)),(1 / 2)),
+        d = x / (n1 * 0.9996),
+
+        q1 = n1 * ((Number.Sin(fp)) / (Number.Cos(fp))) / r1,
+        q2 = Number.Power(d,2) / 2,
+        q3 = (5 + 3 * t1 + 10 * c1 - 4 * Number.Power(c1,2) - 9 * e2) * Number.Power(d,4) / 24,
+        q4 = (61 + 90 * t1 + 298 * c1 + 45 * Number.Power(t1,2) - 3 * Number.Power(c1,2) - 252 * e2) * Number.Power(d,6) / 720,
+
+        latrad = fp - q1 * (q2 - q3 + q4),
+
+        lat = if TextHem = "S" or TextHem = "SOUTH" or TextHem = "SUL" then
+            -1 * (latrad * (180 / Number.PI))
+        else
+            (latrad * (180 / Number.PI)),
+
+
+        q5 = d,
+        q6 = (1 + 2 * t1 + c1) * Number.Power(d,3) / 6,
+        q7 = (5 - 2 * c1 + 28 * t1 - 3 * Number.Power(c1,2) + 8 * e2 + 24 * Number.Power(t1,2)) * Number.Power(d,5) / 120,
+
+        longrad1 = (q5 - q6 + q7) / (Number.Cos(fp)),
+        longrad2 = longrad1 * (180 / Number.PI),
+
+        longi = if long0 < 0 then
+            long0 - longrad2
+        else
+            long0 + longrad2
+
+        in
+        Table.FromRecords({[latitude = lat,longitude = longi]})
+        
+        //UtmLat = Table.AddColumn(UtmLatLong, "latitude", each List.First(UtmLatLong([este],[norte], "SUL", -45),1),type number),
+        //UtmLong = Table.AddColumn(UtmLat, "longitude", each List.Last(UtmLatLong([este],[norte], "SUL", -45),1),type number)
+
+in
+UtmLatLong
