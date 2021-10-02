@@ -1,0 +1,13 @@
+let
+    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+    CriarCalendario = (ColunaData as list) =>
+    let
+    DateMin = List.Min(ColunaData),
+    DateMax = List.Max(ColunaData),
+    Dias = Duration.Days(DateMax-DateMin)+1,
+    ListDates = List.Dates(DateMin,Dias,#duration(1,0,0,0)),
+    TabelaCalendario = Table.FromList(ListDates, Splitter.SplitByNothing(), null, null, ExtraValues.Error)
+in  TabelaCalendario
+
+in
+    CriarCalendario
