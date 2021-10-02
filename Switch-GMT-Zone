@@ -1,0 +1,19 @@
+//Muda Fuso horário de GMT-0 para GMT-3
+
+let
+
+FusoGMTBrasil = (DataHoraFuso as datetimezone) =>
+let
+ZonaRemovida = DateTimeZone.RemoveZone(DataHoraFuso),
+ZonaAdicionada = DateTime.AddZone(ZonaRemovida,0,0),
+ZonaTrocada = DateTimeZone.SwitchZone(ZonaAdicionada,-3,0)
+
+in ZonaTrocada
+
+in
+FusoGMTBrasil
+
+//Comandos individuais;
+//= Table.AddColumn(#"Tipo Alterado1","FusoRemovido",each DateTimeZone.RemoveZone([DATATIME]))
+//= Table.AddColumn(#"Personalizar2","ZonaAlterada2",each DateTime.AddZone([FusoRemovido],0,0))
+//= Table.AddColumn(Personalizar3,"FusoAdicionado",each DateTimeZone.SwitchZone([ZonaAlterada2],-3,0))
